@@ -37,7 +37,7 @@ jobs:
         uses: actions/setup-go@v5
       
       - name: Build Go program
-        run: cd ./lambda && GOARCH=amd64 GOOS=linux go build -o ../bootstrap main.go
+        run: GOARCH=amd64 GOOS=linux go build -o ./bootstrap main.go
 
       - name: Zip the AWS lambda function
         run: zip ./deployments/deployment.zip bootstrap
