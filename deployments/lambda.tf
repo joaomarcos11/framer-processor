@@ -13,6 +13,14 @@ resource "aws_lambda_function" "fiap44_framer_processor" {
   memory_size   = 512
 }
 
+resource "aws_lambda_permission" "allow_bucket" {
+  statement_id  = "AllowExecutionFromS3Bucket2"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.fiap44_framer_processor.arn
+  principal     = "s3.amazonaws.com"
+  source_arn    = aws_s3_bucket.fiap44_framer_videos_bucket.arn
+}
+
 resource "aws_s3_bucket_notification" "fiap44_framer_processor_notification" {
   bucket = aws_s3_bucket.fiap44_framer_videos_bucket.id
 
@@ -20,6 +28,8 @@ resource "aws_s3_bucket_notification" "fiap44_framer_processor_notification" {
     lambda_function_arn = aws_lambda_function.fiap44_framer_processor.arn
     events              = ["s3:ObjectCreated:*"]
   }
+
+  depends_on = [ aws_lambda_permission.allow_bucket ]
 }
 
 data "aws_caller_identity" "current" {}
