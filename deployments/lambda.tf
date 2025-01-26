@@ -13,11 +13,11 @@ resource "aws_lambda_function" "fiap44_framer_processor" {
   memory_size   = 512
 }
 
-resource "aws_s3_bucket_notification" "bucket_notification" {
-  bucket = aws_s3_bucket.framer_videos.id
+resource "aws_s3_bucket_notification" "fiap44_framer_processor_notification" {
+  bucket = aws_s3_bucket.fiap44_framer_videos_bucket.id
 
   lambda_function {
-    lambda_function_arn = aws_lambda_function.fiap44_framer_processor_lambda.arn
+    lambda_function_arn = aws_lambda_function.fiap44_framer_processor.arn
     events              = ["s3:ObjectCreated:*"]
   }
 }
