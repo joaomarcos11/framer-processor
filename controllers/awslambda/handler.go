@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 
-	"framer-proc/domain/service"
-	"framer-proc/domain/usecases"
+	"github.com/filipeandrade6/framer-processor/domain/service"
+	"github.com/filipeandrade6/framer-processor/domain/usecases"
 )
 
 type Handler struct {

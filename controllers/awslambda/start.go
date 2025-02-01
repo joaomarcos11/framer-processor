@@ -1,7 +1,7 @@
 package awslambda
 
 import (
-	"framer-proc/domain/usecases"
+	"github.com/filipeandrade6/framer-processor/domain/usecases"
 
 	"github.com/aws/aws-lambda-go/lambda"
 )

@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 
-	"framer-proc/adapters/message/awssqs"
-	"framer-proc/adapters/storage/awss3"
-	"framer-proc/controllers/awslambda"
+	"github.com/filipeandrade6/framer-processor/adapters/message/awssqs"
+	"github.com/filipeandrade6/framer-processor/adapters/storage/awss3"
+	"github.com/filipeandrade6/framer-processor/controllers/awslambda"
 )
 
 func main() {
