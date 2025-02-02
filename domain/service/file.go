@@ -3,7 +3,6 @@ package service
 import (
 	"archive/zip"
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -13,7 +12,8 @@ import (
 func CreateFile(fileName, dirOut string) (*os.File, error) {
 	file, err := os.Create(fmt.Sprintf("%s/%s", dirOut, fileName))
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("failed to crate file %s in directory %s: %s", fileName, dirOut, err))
+		err = fmt.Errorf("failed to create file %s in directory %s: %w", fileName, dirOut, err)
+		return nil, err
 	}
 
 	return file, nil
@@ -28,7 +28,8 @@ func ZipFileByExtension(dir, extension string) (bytes.Buffer, error) {
 
 	filesInDir, err := os.ReadDir(dir)
 	if err != nil {
-		return bytes.Buffer{}, errors.New(fmt.Sprintf("failed to read directory: %s", err))
+		err = fmt.Errorf("failed to read directory: %w", err)
+		return bytes.Buffer{}, err
 	}
 
 	files := []string{}
@@ -39,24 +40,28 @@ func ZipFileByExtension(dir, extension string) (bytes.Buffer, error) {
 	}
 
 	if len(files) == 0 {
-		return bytes.Buffer{}, errors.New("no frames extracted from video")
+		err = fmt.Errorf("no frames extracted from video: %w", err)
+		return bytes.Buffer{}, err
 	}
 
 	for _, file := range files {
 		fileToZip, err := os.Open(fmt.Sprintf("/tmp/%s", file))
 		if err != nil {
-			return bytes.Buffer{}, errors.New(fmt.Sprintf("failed to open file %s: %v", file, err))
+			err = fmt.Errorf("failed to open file %s: %w", file, err)
+			return bytes.Buffer{}, err
 		}
 		defer fileToZip.Close()
 
 		zipEntry, err := zipWriter.Create(file)
 		if err != nil {
-			return bytes.Buffer{}, errors.New(fmt.Sprintf("failed to add file entry from file %s to the zip archive: %v", file, err))
+			err = fmt.Errorf("failed to add file entry from file %s to the zip archive: %w", file, err)
+			return bytes.Buffer{}, err
 		}
 
 		_, err = io.Copy(zipEntry, fileToZip)
 		if err != nil {
-			return bytes.Buffer{}, errors.New(fmt.Sprintf("failed to write the file contents from file %s to the zip archive: %v", file, err))
+			err = fmt.Errorf("failed to write the file contents from file %s to the zip archive: %w", file, err)
+			return bytes.Buffer{}, err
 		}
 	}
 
