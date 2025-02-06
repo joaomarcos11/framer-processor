@@ -1,0 +1,3 @@
+{"Time":"2025-02-06T20:55:43.735076578-03:00","Action":"start","Package":"github.com/filipeandrade6/framer-processor"}
+{"Time":"2025-02-06T20:55:43.735141379-03:00","Action":"output","Package":"github.com/filipeandrade6/framer-processor","Output":"?   \tgithub.com/filipeandrade6/framer-processor\t[no test files]\n"}
+{"Time":"2025-02-06T20:55:43.735153149-03:00","Action":"skip","Package":"github.com/filipeandrade6/framer-processor","Elapsed":0}
