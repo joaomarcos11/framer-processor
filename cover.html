@@ -1,0 +1,553 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>file: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/filipeandrade6/framer-processor/adapters/file/file.go (0.0%)</option>
+				
+				<option value="file1">github.com/filipeandrade6/framer-processor/adapters/framer/ffmpeg.go (0.0%)</option>
+				
+				<option value="file2">github.com/filipeandrade6/framer-processor/adapters/message/awssqs/sqs.go (0.0%)</option>
+				
+				<option value="file3">github.com/filipeandrade6/framer-processor/adapters/storage/awss3/s3.go (0.0%)</option>
+				
+				<option value="file4">github.com/filipeandrade6/framer-processor/controllers/awslambda/handler.go (0.0%)</option>
+				
+				<option value="file5">github.com/filipeandrade6/framer-processor/controllers/awslambda/start.go (0.0%)</option>
+				
+				<option value="file6">github.com/filipeandrade6/framer-processor/domain/service/process.go (100.0%)</option>
+				
+				<option value="file7">github.com/filipeandrade6/framer-processor/main.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package file
+
+import (
+        "archive/zip"
+        "bytes"
+        "fmt"
+        "io"
+        "os"
+        "path/filepath"
+)
+
+type FileManager struct{}
+
+func New() FileManager <span class="cov0" title="0">{
+        return FileManager{}
+}</span>
+
+func (FileManager) CreateFile(fileName, dirOut string) (*os.File, error) <span class="cov0" title="0">{
+        file, err := os.Create(fmt.Sprintf("%s/%s", dirOut, fileName))
+        if err != nil </span><span class="cov0" title="0">{
+                err = fmt.Errorf("failed to create file %s in directory %s: %w", fileName, dirOut, err)
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">return file, nil</span>
+}
+
+func (FileManager) CreateFileWithContents(fileName, dirOut string, contents io.ReadCloser) error <span class="cov0" title="0">{
+        defer contents.Close()
+
+        file, err := os.Create(fmt.Sprintf("%s/%s", dirOut, fileName))
+        if err != nil </span><span class="cov0" title="0">{
+                err = fmt.Errorf("failed to create file %s in directory %s: %w", fileName, dirOut, err)
+                return err
+        }</span>
+        <span class="cov0" title="0">defer file.Close()
+
+        _, err = file.ReadFrom(contents)
+        if err != nil </span><span class="cov0" title="0">{
+                err = fmt.Errorf("failed to write the contents to the file %s: %w", fileName, err)
+                return err
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (FileManager) ZipFileByExtension(dir, extension string) (bytes.Buffer, error) <span class="cov0" title="0">{
+        var buf bytes.Buffer
+        zipFile := io.Writer(&amp;buf)
+
+        zipWriter := zip.NewWriter(zipFile)
+        defer zipWriter.Close()
+
+        filesInDir, err := os.ReadDir(dir)
+        if err != nil </span><span class="cov0" title="0">{
+                err = fmt.Errorf("failed to read directory: %w", err)
+                return bytes.Buffer{}, err
+        }</span>
+
+        <span class="cov0" title="0">files := []string{}
+        for _, file := range filesInDir </span><span class="cov0" title="0">{
+                if filepath.Ext(file.Name()) == extension </span><span class="cov0" title="0">{
+                        files = append(files, file.Name())
+                }</span>
+        }
+
+        <span class="cov0" title="0">if len(files) == 0 </span><span class="cov0" title="0">{
+                err = fmt.Errorf("no frames extracted from video: %w", err)
+                return bytes.Buffer{}, err
+        }</span>
+
+        <span class="cov0" title="0">for _, file := range files </span><span class="cov0" title="0">{
+                fileToZip, err := os.Open(fmt.Sprintf("/tmp/%s", file))
+                if err != nil </span><span class="cov0" title="0">{
+                        err = fmt.Errorf("failed to open file %s: %w", file, err)
+                        return bytes.Buffer{}, err
+                }</span>
+                <span class="cov0" title="0">defer fileToZip.Close()
+
+                zipEntry, err := zipWriter.Create(file)
+                if err != nil </span><span class="cov0" title="0">{
+                        err = fmt.Errorf("failed to add file entry from file %s to the zip archive: %w", file, err)
+                        return bytes.Buffer{}, err
+                }</span>
+
+                <span class="cov0" title="0">_, err = io.Copy(zipEntry, fileToZip)
+                if err != nil </span><span class="cov0" title="0">{
+                        err = fmt.Errorf("failed to write the file contents from file %s to the zip archive: %w", file, err)
+                        return bytes.Buffer{}, err
+                }</span>
+        }
+
+        <span class="cov0" title="0">return buf, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package framer
+
+import (
+        "fmt"
+        "os/exec"
+)
+
+type FrameExtracter struct{}
+
+func New() FrameExtracter <span class="cov0" title="0">{
+        return FrameExtracter{}
+}</span>
+
+func (FrameExtracter) ExtractAndSaveFramesFromVideo(filePath, outDir string) error <span class="cov0" title="0">{
+        _, err := exec.Command("/opt/ffmpeglib/ffmpeg", "-i", filePath, fmt.Sprintf("%s/frame_%%04d.jpg", outDir)).Output()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("extract frames from video: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package awssqs
+
+import (
+        "context"
+        "errors"
+        "fmt"
+
+        "github.com/aws/aws-sdk-go-v2/aws"
+        "github.com/aws/aws-sdk-go-v2/config"
+        "github.com/aws/aws-sdk-go-v2/service/sqs"
+        "github.com/google/uuid"
+)
+
+type SqsManager struct {
+        service *sqs.Client
+        groupId string
+}
+
+func New() (*SqsManager, error) <span class="cov0" title="0">{
+        cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-1"))
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, errors.New(fmt.Sprintf("failed to load configuration: %s", err))
+        }</span>
+        <span class="cov0" title="0">svc := sqs.NewFromConfig(cfg)
+
+        return &amp;SqsManager{svc, uuid.New().String()}, nil</span>
+}
+
+func (mngr *SqsManager) SendMessage(queue, message string) error <span class="cov0" title="0">{
+        _, err := mngr.service.SendMessage(context.TODO(), &amp;sqs.SendMessageInput{
+                QueueUrl:       aws.String(queue),
+                MessageBody:    aws.String(message),
+                MessageGroupId: aws.String(mngr.groupId),
+        })
+        if err != nil </span><span class="cov0" title="0">{
+                return errors.New(fmt.Sprintf("failed to send message to broker: %s", err))
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package awss3
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "io"
+
+        "github.com/aws/aws-sdk-go-v2/aws"
+        "github.com/aws/aws-sdk-go-v2/config"
+        "github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+        "github.com/aws/aws-sdk-go-v2/service/s3"
+)
+
+type s3Manager struct {
+        service *s3.Client
+}
+
+func New() (*s3Manager, error) <span class="cov0" title="0">{
+        cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-1"))
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, errors.New(fmt.Sprintf("failed to load configuration: %s", err))
+        }</span>
+        <span class="cov0" title="0">svc := s3.NewFromConfig(cfg)
+
+        return &amp;s3Manager{svc}, nil</span>
+}
+
+func (mngr *s3Manager) DownloadFile(repository, fileName string) (io.ReadCloser, error) <span class="cov0" title="0">{
+        result, err := mngr.service.GetObject(context.TODO(), &amp;s3.GetObjectInput{
+                Bucket: aws.String(repository),
+                Key:    aws.String(fileName),
+        })
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, errors.New(fmt.Sprintf("failed to get file %s from s3: %s", fileName, err))
+        }</span>
+
+        <span class="cov0" title="0">return result.Body, nil</span>
+}
+
+func (mngr *s3Manager) UploadFile(repository, fileName string, data io.Reader) error <span class="cov0" title="0">{
+        uploader := manager.NewUploader(mngr.service)
+        _, err := uploader.Upload(context.TODO(), &amp;s3.PutObjectInput{
+                Bucket: aws.String(repository),
+                Key:    aws.String(fileName),
+                Body:   data,
+        })
+        if err != nil </span><span class="cov0" title="0">{
+                return errors.New(fmt.Sprintf("failed to upload file %s to s3: %s", fileName, err))
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (mngr *s3Manager) DeleteFile(repository, fileName string) error <span class="cov0" title="0">{
+        _, err := mngr.service.DeleteObject(context.TODO(), &amp;s3.DeleteObjectInput{
+                Bucket: aws.String(repository),
+                Key:    aws.String(fileName),
+        })
+        if err != nil </span><span class="cov0" title="0">{
+                return errors.New(fmt.Sprintf("failed to delete file %s from s3: %s", fileName, err))
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package awslambda
+
+import (
+        "context"
+        "log"
+
+        "github.com/aws/aws-lambda-go/events"
+
+        "github.com/filipeandrade6/framer-processor/domain/ports"
+        "github.com/filipeandrade6/framer-processor/domain/service"
+)
+
+type Handler struct {
+        strg   ports.Storager
+        msgr   ports.Messager
+        filer  ports.Filer
+        framer ports.Framer
+}
+
+func New(strg ports.Storager, msgr ports.Messager, filer ports.Filer, framer ports.Framer) *Handler <span class="cov0" title="0">{
+        return &amp;Handler{strg: strg, msgr: msgr, filer: filer, framer: framer}
+}</span>
+
+func (hdlr *Handler) Handler(ctx context.Context, s3Event events.S3Event) <span class="cov0" title="0">{
+        for _, record := range s3Event.Records </span><span class="cov0" title="0">{
+                bucket := record.S3.Bucket.Name
+                key := record.S3.Object.URLDecodedKey
+                size := record.S3.Object.Size
+
+                if err := service.Process(hdlr.strg, hdlr.msgr, hdlr.filer, hdlr.framer, bucket, key, size); err != nil </span><span class="cov0" title="0">{
+                        log.Fatal(err)
+                }</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package awslambda
+
+import (
+        "github.com/filipeandrade6/framer-processor/domain/ports"
+
+        "github.com/aws/aws-lambda-go/lambda"
+)
+
+func Start(strg ports.Storager, msgr ports.Messager, filer ports.Filer, framer ports.Framer) <span class="cov0" title="0">{
+        lambdaHndlr := New(strg, msgr, filer, framer)
+        lambda.Start(lambdaHndlr.Handler)
+}</span>
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package service
+
+import (
+        "fmt"
+        "log/slog"
+
+        "github.com/filipeandrade6/framer-processor/domain/errors"
+        "github.com/filipeandrade6/framer-processor/domain/ports"
+)
+
+func Process(strgSvc ports.Storager, msgrSvc ports.Messager, filer ports.Filer, framer ports.Framer, storage, file string, size int64) error <span class="cov8" title="1">{
+        if size == 0 </span><span class="cov8" title="1">{
+                err := errors.ErrEmptyFile
+                slog.Error("download file", "err", err)
+                err2 := msgrSvc.SendMessage("framer-status.fifo", fmt.Sprintf("%s.FALHA.%s", file, err))
+                if err2 != nil </span><span class="cov8" title="1">{
+                        err2 = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
+                        slog.Error("send message", "err", err2)
+                }</span>
+                <span class="cov8" title="1">return err</span>
+        }
+
+        <span class="cov8" title="1">if size &gt; 2e7 </span><span class="cov8" title="1">{
+                err := errors.ErrFileTooBig
+                slog.Error("download file", "err", err)
+                err2 := msgrSvc.SendMessage("framer-status.fifo", fmt.Sprintf("%s.FALHA.%s", file, err))
+                if err2 != nil </span><span class="cov8" title="1">{
+                        err2 = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
+                        slog.Error("send message", "err", err2)
+                }</span>
+                <span class="cov8" title="1">return err</span>
+        }
+
+        <span class="cov8" title="1">err := msgrSvc.SendMessage("framer-status.fifo", fmt.Sprintf("%s.%s", file, "CARREGADO"))
+        if err != nil </span><span class="cov8" title="1">{
+                err = fmt.Errorf("%w: %w", errors.ErrSendMessage, err)
+                slog.Error("send message", "err", err)
+                return err
+        }</span>
+
+        <span class="cov8" title="1">obj, err := strgSvc.DownloadFile(storage, file)
+        if err != nil </span><span class="cov8" title="1">{
+                err = fmt.Errorf("%w: %w", errors.ErrDownloadFile, err)
+                slog.Error("download file", "err", err)
+                err2 := msgrSvc.SendMessage("framer-status.fifo", fmt.Sprintf("%s.FALHA.%s", file, err))
+                if err2 != nil </span><span class="cov8" title="1">{
+                        err2 = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
+                        slog.Error("send message", "err", err2)
+                }</span>
+                <span class="cov8" title="1">return err</span>
+        }
+
+        <span class="cov8" title="1">err = filer.CreateFileWithContents(file, "/tmp", obj)
+        if err != nil </span><span class="cov8" title="1">{
+                err = fmt.Errorf("%w: %w", errors.ErrCreateFile, err)
+                slog.Error("create file", "err", err)
+                err2 := msgrSvc.SendMessage("framer-status.fifo", fmt.Sprintf("%s.FALHA.%s", file, err))
+                if err2 != nil </span><span class="cov8" title="1">{
+                        err2 = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
+                        slog.Error("send message", "err", err2)
+                }</span>
+                <span class="cov8" title="1">return err</span>
+        }
+
+        <span class="cov8" title="1">err = msgrSvc.SendMessage("framer-status.fifo", fmt.Sprintf("%s.%s", file, "PROCESSANDO"))
+        if err != nil </span><span class="cov8" title="1">{
+                err = fmt.Errorf("%w: %w", errors.ErrSendMessage, err)
+                slog.Error("send message", "err", err)
+                return err
+        }</span>
+
+        <span class="cov8" title="1">err = framer.ExtractAndSaveFramesFromVideo(fmt.Sprintf("/tmp/%s", file), "/tmp")
+        if err != nil </span><span class="cov8" title="1">{
+                err = fmt.Errorf("%w:%w", errors.ErrExtractFrames, err)
+                slog.Error("extract frames", "err", err)
+                err2 := msgrSvc.SendMessage("framer-status.fifo", fmt.Sprintf("%s.FALHA.%s", file, err))
+                if err2 != nil </span><span class="cov8" title="1">{
+                        err2 = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
+                        slog.Error("send message", "err", err2)
+                }</span>
+                <span class="cov8" title="1">return err</span>
+        }
+
+        <span class="cov8" title="1">buf, err := filer.ZipFileByExtension("/tmp", ".jpg")
+        if err != nil </span><span class="cov8" title="1">{
+                err = fmt.Errorf("%w:%w", errors.ErrZipFile, err)
+                slog.Error("zip files", "err", err)
+                err2 := msgrSvc.SendMessage("framer-status.fifo", fmt.Sprintf("%s.FALHA.%s", file, err))
+                if err2 != nil </span><span class="cov8" title="1">{
+                        err2 = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
+                        slog.Error("send message", "err", err2)
+                }</span>
+                <span class="cov8" title="1">return err</span>
+        }
+
+        <span class="cov8" title="1">err = strgSvc.UploadFile("fiap44-framer-images", fmt.Sprintf("%s.zip", file), &amp;buf)
+        if err != nil </span><span class="cov8" title="1">{
+                err = fmt.Errorf("%w:%w", errors.ErrUploadFile, err)
+                slog.Error("upload file", "err", err)
+                err2 := msgrSvc.SendMessage("framer-status.fifo", fmt.Sprintf("%s.FALHA.%s", file, err))
+                if err2 != nil </span><span class="cov8" title="1">{
+                        err2 = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
+                        slog.Error("send message", "err", err2)
+                }</span>
+                <span class="cov8" title="1">return err</span>
+        }
+
+        <span class="cov8" title="1">err = msgrSvc.SendMessage("framer-status.fifo", fmt.Sprintf("%s.%s", file, "CONCLUIDO"))
+        if err != nil </span><span class="cov8" title="1">{
+                err = fmt.Errorf("%w:%w", errors.ErrSendMessage, err)
+                slog.Error("send message", "err", err)
+                return err
+        }</span>
+
+        <span class="cov8" title="1">err = strgSvc.DeleteFile("fiap44-framer-videos", file)
+        if err != nil </span><span class="cov8" title="1">{
+                err = fmt.Errorf("%w:%w", errors.ErrDeleteFile, err)
+                slog.Error("delete file", "err", err)
+                err2 := msgrSvc.SendMessage("framer-status.fifo", fmt.Sprintf("%s.FALHA.%s", file, err))
+                if err2 != nil </span><span class="cov8" title="1">{
+                        err2 = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
+                        slog.Error("send message", "err", err2)
+                }</span>
+                <span class="cov8" title="1">return err</span>
+        }
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package main
+
+import (
+        "log"
+
+        "github.com/filipeandrade6/framer-processor/adapters/file"
+        "github.com/filipeandrade6/framer-processor/adapters/framer"
+        "github.com/filipeandrade6/framer-processor/adapters/message/awssqs"
+        "github.com/filipeandrade6/framer-processor/adapters/storage/awss3"
+        "github.com/filipeandrade6/framer-processor/controllers/awslambda"
+)
+
+func main() <span class="cov0" title="0">{
+        storage, err := awss3.New()
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("failed to configure storage: %s", err)
+        }</span>
+
+        <span class="cov0" title="0">messager, err := awssqs.New()
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("failed to configure messager: %s", err)
+        }</span>
+
+        <span class="cov0" title="0">filer := file.New()
+        framer := framer.New()
+
+        awslambda.Start(storage, messager, filer, framer)</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

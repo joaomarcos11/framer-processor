@@ -5,10 +5,32 @@ import (
 	"log/slog"
 
 	"github.com/filipeandrade6/framer-processor/domain/errors"
-	"github.com/filipeandrade6/framer-processor/domain/usecases"
+	"github.com/filipeandrade6/framer-processor/domain/ports"
 )
 
-func Process(strgSvc usecases.Storage, msgrSvc usecases.Messager, storage, file string) error {
+func Process(strgSvc ports.Storager, msgrSvc ports.Messager, filer ports.Filer, framer ports.Framer, storage, file string, size int64) error {
+	if size == 0 {
+		err := errors.ErrEmptyFile
+		slog.Error("download file", "err", err)
+		err2 := msgrSvc.SendMessage("framer-status.fifo", fmt.Sprintf("%s.FALHA.%s", file, err))
+		if err2 != nil {
+			err2 = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
+			slog.Error("send message", "err", err2)
+		}
+		return err
+	}
+
+	if size > 2e7 {
+		err := errors.ErrFileTooBig
+		slog.Error("download file", "err", err)
+		err2 := msgrSvc.SendMessage("framer-status.fifo", fmt.Sprintf("%s.FALHA.%s", file, err))
+		if err2 != nil {
+			err2 = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
+			slog.Error("send message", "err", err2)
+		}
+		return err
+	}
+
 	err := msgrSvc.SendMessage("framer-status.fifo", fmt.Sprintf("%s.%s", file, "CARREGADO"))
 	if err != nil {
 		err = fmt.Errorf("%w: %w", errors.ErrSendMessage, err)
@@ -22,34 +44,20 @@ func Process(strgSvc usecases.Storage, msgrSvc usecases.Messager, storage, file 
 		slog.Error("download file", "err", err)
 		err2 := msgrSvc.SendMessage("framer-status.fifo", fmt.Sprintf("%s.FALHA.%s", file, err))
 		if err2 != nil {
-			err = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
-			slog.Error("send message", "err", err)
+			err2 = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
+			slog.Error("send message", "err", err2)
 		}
 		return err
 	}
-	defer obj.Close()
 
-	videoFile, err := CreateFile(file, "/tmp")
+	err = filer.CreateFileWithContents(file, "/tmp", obj)
 	if err != nil {
 		err = fmt.Errorf("%w: %w", errors.ErrCreateFile, err)
 		slog.Error("create file", "err", err)
 		err2 := msgrSvc.SendMessage("framer-status.fifo", fmt.Sprintf("%s.FALHA.%s", file, err))
 		if err2 != nil {
-			err = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
-			slog.Error("send message", "err", err)
-		}
-		return err
-	}
-	defer videoFile.Close()
-
-	_, err = videoFile.ReadFrom(obj)
-	if err != nil {
-		err = fmt.Errorf("%w: %w", errors.ErrReadFile, err)
-		slog.Error("read file", "err", err)
-		err2 := msgrSvc.SendMessage("framer-status.fifo", fmt.Sprintf("%s.FALHA.%s", file, err))
-		if err2 != nil {
-			err = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
-			slog.Error("send message", "err", err)
+			err2 = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
+			slog.Error("send message", "err", err2)
 		}
 		return err
 	}
@@ -61,26 +69,26 @@ func Process(strgSvc usecases.Storage, msgrSvc usecases.Messager, storage, file 
 		return err
 	}
 
-	err = ExtractAndSaveFramesFromVideo(fmt.Sprintf("/tmp/%s", file), "/tmp")
+	err = framer.ExtractAndSaveFramesFromVideo(fmt.Sprintf("/tmp/%s", file), "/tmp")
 	if err != nil {
 		err = fmt.Errorf("%w:%w", errors.ErrExtractFrames, err)
 		slog.Error("extract frames", "err", err)
 		err2 := msgrSvc.SendMessage("framer-status.fifo", fmt.Sprintf("%s.FALHA.%s", file, err))
 		if err2 != nil {
-			err = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
-			slog.Error("send message", "err", err)
+			err2 = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
+			slog.Error("send message", "err", err2)
 		}
 		return err
 	}
 
-	buf, err := ZipFileByExtension("/tmp", ".jpg")
+	buf, err := filer.ZipFileByExtension("/tmp", ".jpg")
 	if err != nil {
 		err = fmt.Errorf("%w:%w", errors.ErrZipFile, err)
 		slog.Error("zip files", "err", err)
 		err2 := msgrSvc.SendMessage("framer-status.fifo", fmt.Sprintf("%s.FALHA.%s", file, err))
 		if err2 != nil {
-			err = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
-			slog.Error("send message", "err", err)
+			err2 = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
+			slog.Error("send message", "err", err2)
 		}
 		return err
 	}
@@ -91,8 +99,8 @@ func Process(strgSvc usecases.Storage, msgrSvc usecases.Messager, storage, file 
 		slog.Error("upload file", "err", err)
 		err2 := msgrSvc.SendMessage("framer-status.fifo", fmt.Sprintf("%s.FALHA.%s", file, err))
 		if err2 != nil {
-			err = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
-			slog.Error("send message", "err", err)
+			err2 = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
+			slog.Error("send message", "err", err2)
 		}
 		return err
 	}
@@ -110,8 +118,8 @@ func Process(strgSvc usecases.Storage, msgrSvc usecases.Messager, storage, file 
 		slog.Error("delete file", "err", err)
 		err2 := msgrSvc.SendMessage("framer-status.fifo", fmt.Sprintf("%s.FALHA.%s", file, err))
 		if err2 != nil {
-			err = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
-			slog.Error("send message", "err", err)
+			err2 = fmt.Errorf("%w: %w", errors.ErrSendMessage, err2)
+			slog.Error("send message", "err", err2)
 		}
 		return err
 	}

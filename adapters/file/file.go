@@ -1,4 +1,4 @@
-package service
+package file
 
 import (
 	"archive/zip"
@@ -9,7 +9,13 @@ import (
 	"path/filepath"
 )
 
-func CreateFile(fileName, dirOut string) (*os.File, error) {
+type FileManager struct{}
+
+func New() FileManager {
+	return FileManager{}
+}
+
+func (FileManager) CreateFile(fileName, dirOut string) (*os.File, error) {
 	file, err := os.Create(fmt.Sprintf("%s/%s", dirOut, fileName))
 	if err != nil {
 		err = fmt.Errorf("failed to create file %s in directory %s: %w", fileName, dirOut, err)
@@ -19,7 +25,26 @@ func CreateFile(fileName, dirOut string) (*os.File, error) {
 	return file, nil
 }
 
-func ZipFileByExtension(dir, extension string) (bytes.Buffer, error) {
+func (FileManager) CreateFileWithContents(fileName, dirOut string, contents io.ReadCloser) error {
+	defer contents.Close()
+
+	file, err := os.Create(fmt.Sprintf("%s/%s", dirOut, fileName))
+	if err != nil {
+		err = fmt.Errorf("failed to create file %s in directory %s: %w", fileName, dirOut, err)
+		return err
+	}
+	defer file.Close()
+
+	_, err = file.ReadFrom(contents)
+	if err != nil {
+		err = fmt.Errorf("failed to write the contents to the file %s: %w", fileName, err)
+		return err
+	}
+
+	return nil
+}
+
+func (FileManager) ZipFileByExtension(dir, extension string) (bytes.Buffer, error) {
 	var buf bytes.Buffer
 	zipFile := io.Writer(&buf)
 
