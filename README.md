@@ -1,6 +1,6 @@
 # Framer Processor
 
-This is a AWS Lambda function written in Go that is trigged when a file is uploaded to an AWS S3 bucket. The application will try to extract frames from a video file, zip the result images and save the zip file in another AWS S3 bucket. During the process the application will send status messages in an AWS SQS Bucket.
+This is a AWS Lambda function written in Go that is triggered when a file is uploaded to an AWS S3 bucket. The application will try to extract frames from a video file, zip the result images and save the zip file in another AWS S3 bucket. During the process the application will send status messages in an AWS SQS Queue.
 
 ## Testing
 
