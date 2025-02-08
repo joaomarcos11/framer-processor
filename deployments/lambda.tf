@@ -18,11 +18,11 @@ resource "aws_lambda_permission" "allow_bucket" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.fiap44_framer_processor.arn
   principal     = "s3.amazonaws.com"
-  source_arn    = aws_s3_bucket.fiap44_framer_videos_bucket.arn
+  source_arn    = data.aws_s3_bucket.fiap44_framer_videos_bucket.arn
 }
 
 resource "aws_s3_bucket_notification" "fiap44_framer_processor_notification" {
-  bucket = aws_s3_bucket.fiap44_framer_videos_bucket.id
+  bucket = data.aws_s3_bucket.fiap44_framer_videos_bucket.id
 
   lambda_function {
     lambda_function_arn = aws_lambda_function.fiap44_framer_processor.arn
