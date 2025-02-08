@@ -33,3 +33,7 @@ resource "aws_s3_bucket_notification" "fiap44_framer_processor_notification" {
 }
 
 data "aws_caller_identity" "current" {}
+
+data "aws_s3_bucket" "fiap44_framer_videos_bucket" {
+  bucket = "fiap44-framer-videos"
+}
